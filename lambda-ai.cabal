@@ -1,0 +1,48 @@
+cabal-version:      3.0
+name:               lambda-ai
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            GPL-3.0-only
+license-file:       LICENSE
+author:             Gabriel-Emannuel
+maintainer:         gabriel.emannuel.gama.andrade@gmail.com
+-- copyright:
+category:           AI
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options: -Wall
+
+executable lambda-ai
+    import:           warnings
+    main-is:          Main.hs
+    -- other-modules:
+    -- other-extensions:
+    build-depends:    base ^>=4.17.2.1
+    hs-source-dirs:   app, src
+    default-language: Haskell2010
+
+library
+  
+  hs-source-dirs: src
+  
+  exposed-modules: Lib
+  
+  build-depends: base >=4.7 && <5
+  
+  default-language: Haskell2010
+
+test-suite tests-main
+  
+  type: exitcode-stdio-1.0
+  
+  main-is: Main.hs
+  
+  hs-source-dirs: test, src
+  
+  build-depends: base >=4.7 && <5, HUnit
+  
+  default-language: Haskell2010
