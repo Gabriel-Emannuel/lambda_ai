@@ -1,6 +1,7 @@
 module SearchAlgorithms where
 
 import Types(Agent(Frontier), Enviroment(Labirinth))
+import Data.List (sortOn)
 
 baseAlgorithm :: (Eq s) => Enviroment t -> Agent s ->
                  (Enviroment t -> Agent s -> Agent s) ->
@@ -44,6 +45,34 @@ perceptionLabirinthDFS labirinth agent = Frontier (last frontier : init frontier
 perceptionLabirinthBFS :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
 perceptionLabirinthBFS = perceptionLabirinthBase
 
+perceptionLabirinthStar :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
+perceptionLabirinthStar labirinth agent = Frontier newFrontier state historic
+    where
+        (Frontier frontier state historic) = perceptionLabirinthBase labirinth agent
+        sortFunction x = (manhantanDistance labirinth . head) x + length x 
+        newFrontier = sortOn sortFunction frontier
+
+perceptionLabirinthGreedy :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
+perceptionLabirinthGreedy labirinth agent = Frontier newFrontier state historic
+    where
+        (Frontier frontier state historic) = perceptionLabirinthBase labirinth agent
+        newFrontier = sortOn (manhantanDistance labirinth . head) frontier
+
+manhantanDistance :: (Eq t) => Enviroment t -> (Int, Int) -> Int
+manhantanDistance labirinth (x,y)= abs (x-i) + abs (y - j)
+    where
+        (i,j) = findCoordenateTreasure labirinth 
+
+findCoordenateTreasure :: (Eq t) => Enviroment t -> (Int, Int)
+findCoordenateTreasure (Labirinth _ treasure _ _ matrix _)
+    | null treasuresSpots || length treasuresSpots > 1 = error "You have two Treasure Spots" -- can we implement a way for more than one?
+    | otherwise = head treasuresSpots
+    where
+        treasuresSpots = [(x, y) | y <- [0..(pred.length) matrix], 
+                                   x <- [0..(pred.length) (matrix !! y)], 
+                                   matrix !! y !! x == treasure]
+        
+
 generateAllPerceptions :: (Int, Int) -> [(Int, Int)]
 generateAllPerceptions (x, y) = [(succ x, y), (pred x, y), (x, succ y), (x, pred y)]
 
@@ -51,6 +80,6 @@ isValidPerception :: (Eq t) => Enviroment t -> (Int, Int) -> Bool
 isValidPerception _ (-1, _) = False
 isValidPerception _ (_, -1) = False
 isValidPerception (Labirinth obstacle treasure normal agent matrix _) (x, y) =
-    y < length matrix && x < (length . head) matrix && cursor == normal
+    y < length matrix && x < length (matrix !! y) && cursor == normal
     where
         cursor = matrix !! y !! x
