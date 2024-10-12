@@ -1,8 +1,37 @@
-module Types (Agent(..), Enviroment(..), isValidLabirinth) where
+{-# LANGUAGE InstanceSigs #-}
+module Types (Agent(..), Enviroment(..), baseAlgorithm, isValidLabirinth) where
 
-data Agent t = Frontier [[t]] [t] [t] deriving (Show, Eq)
+data Agent t = Frontier [[t]] [t] [t] | 
+               Cromossome [[t]] Int   |
+               HillClibing t [t] (t -> Bool -> t) |
+               SimulatedAnnealing t [t] Float Float Float (t -> Float -> t)
 
-data Enviroment t = Labirinth t t t t [[t]] (Int, Int)
+data Enviroment t = Labirinth t t t t [[t]] (Int, Int) | 
+                    Function  (t -> Int)
+
+instance (Eq t) => Eq (Agent t) where
+
+  (==) :: Eq t => Agent t -> Agent t -> Bool
+  (Frontier matrixL stateL historicL) == (Frontier matrixR stateR historicR) = 
+    matrixL == matrixR && stateL == stateR && historicL == historicR
+  (Cromossome cromossomesL turnsL) == (Cromossome cromossomesR turnsR) = cromossomesL == cromossomesR
+  (HillClibing valueL domainL functionModifierL) == (HillClibing valueR domainR functionModifierR) = 
+    valueL == valueR && domainL == domainR
+  (SimulatedAnnealing valueL domainL tempL tempRateL tempMinL functionChangeL) == (SimulatedAnnealing valueR domainR tempR tempRateR tempMinR functionChangeR) =
+    valueL == valueR
+  _ == _ = False
+  
+
+baseAlgorithm :: (Eq s) => Enviroment t -> Agent s ->
+                 (Enviroment t -> Agent s -> Agent s) ->
+                 (Agent s -> Enviroment t -> (Agent s, Enviroment t)) ->
+                 Agent s
+baseAlgorithm enviroment agent perceptionType action
+    | agentAfterPerception == agent = agentAfterPerception
+    | otherwise = baseAlgorithm newEnviroment newAgent perceptionType action
+    where
+        agentAfterPerception = perceptionType enviroment agent
+        (newAgent, newEnviroment) = action agent enviroment
 
 isValidLabirinth :: (Eq t) => Enviroment t -> Bool
 isValidLabirinth (Labirinth obstacle treasure normal agent matrix coordenates) = 
