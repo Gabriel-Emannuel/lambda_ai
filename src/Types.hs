@@ -3,11 +3,11 @@ module Types (Agent(..), Enviroment(..), baseAlgorithm, isValidLabirinth) where
 
 data Agent t = Frontier [[t]] [t] [t] | 
                Cromossome [[t]] Int   |
-               HillClibing t [t] (t -> Bool -> t) |
-               SimulatedAnnealing t [t] Float Float Float (t -> Float -> t)
+               HillClibing t (t -> Bool) (t -> Bool -> t) |
+               SimulatedAnnealing t (t -> Bool) Float Float Float (t -> Float -> t)
 
 data Enviroment t = Labirinth t t t t [[t]] (Int, Int) | 
-                    Function  (t -> Int)
+                    Function  (t -> Float)
 
 instance (Eq t) => Eq (Agent t) where
 
@@ -16,7 +16,7 @@ instance (Eq t) => Eq (Agent t) where
     matrixL == matrixR && stateL == stateR && historicL == historicR
   (Cromossome cromossomesL turnsL) == (Cromossome cromossomesR turnsR) = cromossomesL == cromossomesR
   (HillClibing valueL domainL functionModifierL) == (HillClibing valueR domainR functionModifierR) = 
-    valueL == valueR && domainL == domainR
+    valueL == valueR
   (SimulatedAnnealing valueL domainL tempL tempRateL tempMinL functionChangeL) == (SimulatedAnnealing valueR domainR tempR tempRateR tempMinR functionChangeR) =
     valueL == valueR
   _ == _ = False
@@ -47,5 +47,5 @@ isValidCoordenates _ _ (-1, _) = False
 isValidCoordenates _ _ (_, -1) = False
 isValidCoordenates matrix agent (x, y) = 
     y < length matrix 
-    && x < (length . head) matrix 
+    && x < length (matrix !! y) 
     && matrix !! y !! x == agent

@@ -1,4 +1,4 @@
-module GeneticAlgorithms () where
+module GeneticAlgorithms (baseGeneticAlgorithm) where
 
 import Types (Agent(Cromossome))
 

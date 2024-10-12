@@ -1,4 +1,10 @@
-module SearchAlgorithms where
+module SearchAlgorithms (
+    action, 
+    perceptionLabirinthBFS, 
+    perceptionLabirinthDFS, 
+    perceptionLabirinthGreedy, 
+    perceptionLabirinthStar,
+    findCoordenate) where
 
 import Types(Agent(Frontier), Enviroment(Labirinth))
 import Data.List (sortOn)
@@ -51,14 +57,18 @@ manhantanDistance labirinth (x,y)= abs (x-i) + abs (y - j)
         (i,j) = findCoordenateTreasure labirinth 
 
 findCoordenateTreasure :: (Eq t) => Enviroment t -> (Int, Int)
-findCoordenateTreasure (Labirinth _ treasure _ _ matrix _)
-    | null treasuresSpots || length treasuresSpots > 1 = error "You have two Treasure Spots" -- can we implement a way for more than one?
-    | otherwise = head treasuresSpots
-    where
-        treasuresSpots = [(x, y) | y <- [0..(pred.length) matrix], 
-                                   x <- [0..(pred.length) (matrix !! y)], 
-                                   matrix !! y !! x == treasure]
-        
+findCoordenateTreasure (Labirinth _ treasure _ _ matrix _) = 
+    findCoordenate treasure matrix "You have two Treasure Spots"
+
+findCoordenate :: (Eq t) => t -> [[t]] -> String -> (Int, Int)
+findCoordenate char matrix message 
+    | null spots || length spots > 1 = error message
+    | otherwise = head spots
+    where 
+        spots =  [(x, y) | y <- [0..(pred.length) matrix], 
+                  x <- [0..(pred.length) (matrix !! y)], 
+                  matrix !! y !! x == char]
+
 ---
 
 generateAllPerceptions :: (Int, Int) -> [(Int, Int)]
