@@ -12,14 +12,15 @@ data Enviroment t = Labirinth t t t t [[t]] (Int, Int) |
 instance (Eq t) => Eq (Agent t) where
 
   (==) :: Eq t => Agent t -> Agent t -> Bool
-  (Frontier matrixL stateL historicL) == (Frontier matrixR stateR historicR) = 
-    matrixL == matrixR && stateL == stateR && historicL == historicR
+  (Frontier frontierL stateL historicL) == (Frontier frontierR stateR historicR) = 
+    frontierL == frontierR && stateL == stateR
   (Cromossome cromossomesL turnsL) == (Cromossome cromossomesR turnsR) = cromossomesL == cromossomesR
   (HillClibing valueL domainL functionModifierL) == (HillClibing valueR domainR functionModifierR) = 
     valueL == valueR
   (SimulatedAnnealing valueL domainL tempL tempRateL tempMinL functionChangeL) == (SimulatedAnnealing valueR domainR tempR tempRateR tempMinR functionChangeR) =
     valueL == valueR
   _ == _ = False
+
   
 
 baseAlgorithm :: (Eq s) => Enviroment t -> Agent s ->
@@ -31,7 +32,7 @@ baseAlgorithm enviroment agent perceptionType action
     | otherwise = baseAlgorithm newEnviroment newAgent perceptionType action
     where
         agentAfterPerception = perceptionType enviroment agent
-        (newAgent, newEnviroment) = action agent enviroment
+        (newAgent, newEnviroment) = action agentAfterPerception enviroment
 
 isValidLabirinth :: (Eq t) => Enviroment t -> Bool
 isValidLabirinth (Labirinth obstacle treasure normal agent matrix coordenates) = 

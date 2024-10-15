@@ -20,9 +20,12 @@ labirinth (filepath : obstacle : treasure : normal : agent : options) = do
 
     let coordenate = findCoordenate agent matrix "Just one coordenate is possible, but none or more was found."
     let enviroment = Labirinth obstacle treasure normal agent matrix coordenate
+
     let agent = Frontier [] [coordenate] [coordenate]
 
     let agents = runner options agent enviroment
+
+    printAgents agents
 
     return ()
 
@@ -81,9 +84,9 @@ runner ("Algorithm" : algorithm : _) agent enviroment
     | algorithm == "Greedy" = [(baseAlgorithm enviroment agent perceptionLabirinthGreedy action, "Greedy")]
     | otherwise = error "Algorithm doesn't registred for be used."
 runner _ agent enviroment = [
-    (baseAlgorithm enviroment agent perceptionLabirinthStar action, "A*"),
     (baseAlgorithm enviroment agent perceptionLabirinthBFS action, "BFS"),
     (baseAlgorithm enviroment agent perceptionLabirinthDFS action, "DFS"),
+    (baseAlgorithm enviroment agent perceptionLabirinthStar action, "A*"),
     (baseAlgorithm enviroment agent perceptionLabirinthGreedy action, "Greedy")
     ]
 
@@ -92,6 +95,7 @@ readLabirinth filepath ("Algorithm" : _ : options) = readLabirinth filepath opti
 readLabirinth filepath ("Separator" : separator : _) = do
     txtContent <- readFile filepath
     let linesContent = lines txtContent
-    return $ map (splitOn separator) linesContent
+    let labirinthMap = map (splitOn separator) linesContent
+    return labirinthMap
 
 readLabirinth filepath _ = readLabirinth filepath ["Separator", "|"]

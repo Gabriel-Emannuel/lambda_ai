@@ -25,7 +25,7 @@ polynomial (intervalMin : intervalMax : function) = do
         f :: Float -> Float
         f v = (sum . zipWith (*) [v ^^ exp | exp <- [0..(pred . length) function]]) valuesFunction
 
-        varInterval = abs (valueMinimum - valueMaximum) / max valueMinimum valueMaximum
+        varInterval = (abs (valueMinimum - valueMaximum)) / (max valueMinimum valueMaximum)
 
         possibleValues = [min valueMinimum valueMaximum .. max valueMinimum valueMaximum]
 

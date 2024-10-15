@@ -1,7 +1,5 @@
 module Genetic (genetic) where
 
-import Util(tab)
-
 genetic :: [String] -> IO ()
 genetic [] = do
     putStrLn "lambda-ai genetic"
