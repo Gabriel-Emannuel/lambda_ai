@@ -18,10 +18,13 @@ labirinth :: [String] -> IO ()
 labirinth (filepath : obstacle : treasure : normal : agent : options) = do
     matrix <- readLabirinth filepath options
 
+
     let coordenate = findCoordenate agent matrix "Just one coordenate is possible, but none or more was found."
     let enviroment = Labirinth obstacle treasure normal agent matrix coordenate
 
-    let agent = Frontier [] [coordenate] [coordenate]
+    putStrLn $ "Initial coordenate " ++ show coordenate
+
+    let agent = Frontier [[coordenate]] [] [] False
 
     let agents = runner options agent enviroment
 
@@ -66,11 +69,11 @@ labirinth _ = putStrLn "Put the arguments in the right way, you can see it typin
 
 printAgents :: [(Agent (Int, Int), String)] -> IO ()
 printAgents [] = return ()
-printAgents ((Frontier frontier finalState historic, typeAgent) : agents) = do
+printAgents ((Frontier frontier finalState historic _, typeAgent) : agents) = do
     putStrLn $ "Agent " ++ typeAgent
-    putStrLn $ "Final way this agent goes " ++ show finalState
-    putStrLn $ "ways still not explored " ++ show frontier
-    putStrLn $ "All coordenates this agent reached " ++ show historic
+    putStrLn $ "Final way this agent goes " ++ show (reverse finalState)
+    putStrLn $ "ways still not explored " ++ show (reverse frontier)
+    putStrLn $ "All coordenates this agent reached " ++ show (reverse historic)
     putStrLn "---"
     printAgents agents
 

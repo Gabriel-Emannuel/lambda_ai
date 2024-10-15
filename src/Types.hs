@@ -1,10 +1,10 @@
 {-# LANGUAGE InstanceSigs #-}
 module Types (Agent(..), Enviroment(..), baseAlgorithm, isValidLabirinth) where
 
-data Agent t = Frontier [[t]] [t] [t] | 
-               Cromossome [[t]] Int   |
-               HillClibing t (t -> Bool) (t -> Bool -> t) |
-               SimulatedAnnealing t (t -> Bool) Float Float Float (t -> Float -> t)
+data Agent t = Frontier [[t]] [t] [t] Bool | 
+               Cromossome [[t]] Int |
+               HillClibing t (t -> Bool) (t -> Bool -> t) Bool |
+               SimulatedAnnealing t (t -> Bool) Float Float Float (t -> Float -> t) Bool
 
 data Enviroment t = Labirinth t t t t [[t]] (Int, Int) | 
                     Function  (t -> Float)
@@ -12,23 +12,26 @@ data Enviroment t = Labirinth t t t t [[t]] (Int, Int) |
 instance (Eq t) => Eq (Agent t) where
 
   (==) :: Eq t => Agent t -> Agent t -> Bool
-  (Frontier frontierL stateL historicL) == (Frontier frontierR stateR historicR) = 
-    frontierL == frontierR && stateL == stateR
-  (Cromossome cromossomesL turnsL) == (Cromossome cromossomesR turnsR) = cromossomesL == cromossomesR
-  (HillClibing valueL domainL functionModifierL) == (HillClibing valueR domainR functionModifierR) = 
+  (Frontier frontierL stateL historicL _) == (Frontier frontierR stateR historicR _) = 
+    frontierL == frontierR && stateL == stateR && historicL == historicR
+  (Cromossome cromossomesL _) == (Cromossome cromossomesR _) = cromossomesL == cromossomesR
+  (HillClibing valueL _ _ _) == (HillClibing valueR _ _ _) = 
     valueL == valueR
-  (SimulatedAnnealing valueL domainL tempL tempRateL tempMinL functionChangeL) == (SimulatedAnnealing valueR domainR tempR tempRateR tempMinR functionChangeR) =
+  (SimulatedAnnealing valueL _ _ _ _ _ _) == (SimulatedAnnealing valueR _ _ _ _ _ _) =
     valueL == valueR
-  _ == _ = False
+  _ == _ = False   
 
-  
+endAlgorithm :: Agent t -> Bool
+endAlgorithm (Frontier _ _ _ end) = end
+endAlgorithm (HillClibing _ _ _ end) = end
+endAlgorithm (SimulatedAnnealing _ _ _ _ _ _ end) = end
 
 baseAlgorithm :: (Eq s) => Enviroment t -> Agent s ->
                  (Enviroment t -> Agent s -> Agent s) ->
                  (Agent s -> Enviroment t -> (Agent s, Enviroment t)) ->
                  Agent s
 baseAlgorithm enviroment agent perceptionType action
-    | agentAfterPerception == agent = agentAfterPerception
+    | endAlgorithm agentAfterPerception = agentAfterPerception
     | otherwise = baseAlgorithm newEnviroment newAgent perceptionType action
     where
         agentAfterPerception = perceptionType enviroment agent

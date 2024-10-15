@@ -10,8 +10,8 @@ import Types(Agent(Frontier), Enviroment(Labirinth))
 import Data.List (sortOn)
 
 action :: (Eq t, Show t) => Agent (Int, Int) -> Enviroment t -> (Agent (Int, Int), Enviroment t)
-action (Frontier frontier state historic) (Labirinth obstacle treasure normal agent matrix (x, y)) =
-    (Frontier newFrontier newState ((x,y):historic), Labirinth obstacle treasure normal agent newMatrix newAgentCoordenate)
+action (Frontier frontier state historic end) (Labirinth obstacle treasure normal agent matrix (x, y)) =
+    (Frontier newFrontier newState newHistoric end, Labirinth obstacle treasure normal agent newMatrix newAgentCoordenate)
     where
         newAgentCoordenate = (head . head) frontier
         newMatrix = (insertMatrix agent newAgentCoordenate . insertMatrix normal (x,y)) matrix
@@ -21,39 +21,40 @@ action (Frontier frontier state historic) (Labirinth obstacle treasure normal ag
 ---
 
 perceptionLabirinthBase :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthBase (Labirinth obstacle treasure normal agent matrix (x, y)) (Frontier frontier state historic)
-    | isAlreadySolved = Frontier frontier state historic
-    | otherwise = Frontier (frontier ++ newStates) state historic
+perceptionLabirinthBase (Labirinth obstacle treasure normal agent matrix (x, y)) (Frontier frontier state historic _)
+    | isAlreadySolved = Frontier frontier state historic True
+    | otherwise = Frontier (newStates ++ frontier) state historic newEnd
     where
         isAlreadySolved = (not . null) [matrix !! y !! x | (x,y) <- historic, matrix !! y !! x == treasure]
         newPerceptions = (filter (\x -> x `notElem` historic) . filter (isValidPerception (Labirinth obstacle treasure normal agent matrix (x, y))) . generateAllPerceptions ) (x, y)
         newStates = if null frontier then map (:[]) newPerceptions else map (: head frontier) newPerceptions
+        newEnd = null (newStates ++ frontier)
 
 perceptionLabirinthDFS :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
 perceptionLabirinthDFS labirinth agent
-    | (perceptionLabirinthBase labirinth agent) == agent = agent
-    | otherwise = Frontier (last frontier : init frontier) state historic
+    | newEnd = Frontier frontier state historic newEnd 
+    | otherwise = Frontier (last frontier : init frontier) state historic newEnd
     where
-        (Frontier frontier state historic) = perceptionLabirinthBase labirinth agent
+        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
 
 perceptionLabirinthBFS :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
 perceptionLabirinthBFS = perceptionLabirinthBase
 
 perceptionLabirinthStar :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
 perceptionLabirinthStar labirinth agent
-    | (perceptionLabirinthBase labirinth agent) == agent = agent
-    | otherwise = Frontier newFrontier state historic
+    | newEnd = Frontier frontier state historic newEnd
+    | otherwise = Frontier newFrontier state historic newEnd
     where
-        (Frontier frontier state historic) = perceptionLabirinthBase labirinth agent
+        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
         sortFunction x = (manhantanDistance labirinth . head) x + length x 
         newFrontier = reverse $ sortOn sortFunction frontier
 
 perceptionLabirinthGreedy :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
 perceptionLabirinthGreedy labirinth agent
-    | (perceptionLabirinthBase labirinth agent) == agent = agent
-    | otherwise = Frontier newFrontier state historic
+    | newEnd = Frontier frontier state historic newEnd
+    | otherwise = Frontier newFrontier state historic newEnd
     where
-        (Frontier frontier state historic) = perceptionLabirinthBase labirinth agent
+        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
         newFrontier = reverse $ sortOn (manhantanDistance labirinth . head) frontier
 
 ---

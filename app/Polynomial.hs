@@ -51,12 +51,12 @@ polynomial [] = do
 polynomial _ = putStrLn "Put the arguments in the right way, you can see it typing \"lambda-ai polynomial\""
 
 printAgent :: (Show t) => Agent t -> IO ()
-printAgent (HillClibing maxValue _ _) = do
+printAgent (HillClibing maxValue _ _ _) = do
     putStrLn "---"
     putStrLn   "Hill Clibing"
     putStrLn $ "The maximum local reached is: " ++ show maxValue 
     putStrLn "---"
-printAgent (SimulatedAnnealing maxValue _ _ _ _ _) = do
+printAgent (SimulatedAnnealing maxValue _ _ _ _ _ _) = do
     putStrLn "---"
     putStrLn    "Simultaded Annealing"
     putStrLn $ "The maximum local reached is: " ++ show maxValue 
