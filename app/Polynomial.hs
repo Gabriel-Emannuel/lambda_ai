@@ -63,4 +63,6 @@ printAgent (SimulatedAnnealing maxValue _ _ _ _ _ _) = do
     putStrLn "---"
 
 convertFloat :: String -> Float
-convertFloat v = read v :: Float
+convertFloat v 
+    | head v == 'n' = (-1) * (convertFloat . tail) v
+    | otherwise = read v :: Float

@@ -1,8 +1,8 @@
 module SearchAlgorithms (
-    action, 
-    perceptionLabirinthBFS, 
-    perceptionLabirinthDFS, 
-    perceptionLabirinthGreedy, 
+    action,
+    perceptionLabirinthBFS,
+    perceptionLabirinthDFS,
+    perceptionLabirinthGreedy,
     perceptionLabirinthStar,
     findCoordenate) where
 
@@ -10,71 +10,76 @@ import Types(Agent(Frontier), Enviroment(Labirinth))
 import Data.List (sortOn)
 
 action :: (Eq t, Show t) => Agent (Int, Int) -> Enviroment t -> (Agent (Int, Int), Enviroment t)
-action (Frontier frontier state historic end) (Labirinth obstacle treasure normal agent matrix (x, y)) =
+action (Frontier frontier state historic end) (Labirinth obstacle treasure normal agent matrix lastAgentCoordenate) = 
     (Frontier newFrontier newState newHistoric end, Labirinth obstacle treasure normal agent newMatrix newAgentCoordenate)
     where
-        newAgentCoordenate = (head . head) frontier
-        newMatrix = (insertMatrix agent newAgentCoordenate . insertMatrix normal (x,y)) matrix
         (newState : newFrontier) = frontier
-        newHistoric = (x,y):historic
+        newAgentCoordenate = head newState
+        newHistoric = newAgentCoordenate : historic
+        newMatrix = if matrix !! snd newAgentCoordenate !! fst newAgentCoordenate /= treasure
+                    then (insertMatrix agent newAgentCoordenate . insertMatrix normal lastAgentCoordenate) matrix
+                    else matrix
 
 ---
 
 perceptionLabirinthBase :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthBase (Labirinth obstacle treasure normal agent matrix (x, y)) (Frontier frontier state historic _)
-    | isAlreadySolved = Frontier frontier state historic True
-    | otherwise = Frontier (newStates ++ frontier) state historic newEnd
+perceptionLabirinthBase (Labirinth obstacle treasure normal agent matrix agentCoordenate) (Frontier frontier state historic _) =
+    Frontier newFrontier state historic newEnd
     where
-        isAlreadySolved = (not . null) [matrix !! y !! x | (x,y) <- historic, matrix !! y !! x == treasure]
-        newPerceptions = (filter (\x -> x `notElem` historic) . filter (isValidPerception (Labirinth obstacle treasure normal agent matrix (x, y))) . generateAllPerceptions ) (x, y)
-        newStates = if null frontier then map (:[]) newPerceptions else map (: head frontier) newPerceptions
-        newEnd = null (newStates ++ frontier)
+        perceptions = (map (: state) .
+                      filter (`notElem` historic) .
+                      filter (isValidPerception (Labirinth obstacle treasure normal agent matrix agentCoordenate)) .
+                      generateAllPerceptions) agentCoordenate
+
+        newFrontier = perceptions ++ frontier
+
+        isTreasureReached = findCoordenateTreasure (Labirinth obstacle treasure normal agent matrix agentCoordenate) `elem` historic
+
+        newEnd = isTreasureReached || null newFrontier
 
 perceptionLabirinthDFS :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthDFS labirinth agent
-    | newEnd = Frontier frontier state historic newEnd 
-    | otherwise = Frontier (last frontier : init frontier) state historic newEnd
-    where
-        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
+perceptionLabirinthDFS = perceptionLabirinthBase
 
 perceptionLabirinthBFS :: (Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthBFS = perceptionLabirinthBase
+perceptionLabirinthBFS labirinth agent
+    | end = Frontier frontier state historic end
+    | otherwise = Frontier (last frontier : init frontier) state historic end
+    where
+        Frontier frontier state historic end = perceptionLabirinthBase labirinth agent
 
 perceptionLabirinthStar :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthStar labirinth agent
-    | newEnd = Frontier frontier state historic newEnd
-    | otherwise = Frontier newFrontier state historic newEnd
+perceptionLabirinthStar labirinth agent = Frontier newFrontier state historic end
     where
-        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
-        sortFunction x = (manhantanDistance labirinth . head) x + length x 
-        newFrontier = reverse $ sortOn sortFunction frontier
+        Frontier frontier state historic end = perceptionLabirinthBase labirinth agent
+        sortFunction :: [[(Int, Int)]] -> [[(Int, Int)]]
+        sortFunction = sortOn (\y -> manhantanDistance labirinth (head y) + length y)
+        newFrontier = (reverse . sortFunction) frontier
 
 perceptionLabirinthGreedy :: (Ord t, Eq t) => Enviroment t -> Agent (Int, Int) -> Agent (Int, Int)
-perceptionLabirinthGreedy labirinth agent
-    | newEnd = Frontier frontier state historic newEnd
-    | otherwise = Frontier newFrontier state historic newEnd
+perceptionLabirinthGreedy labirinth agent = Frontier newFrontier state historic end
     where
-        (Frontier frontier state historic newEnd) = perceptionLabirinthBase labirinth agent
-        newFrontier = reverse $ sortOn (manhantanDistance labirinth . head) frontier
-
+        Frontier frontier state historic end = perceptionLabirinthBase labirinth agent
+        sortFunction :: [[(Int,Int)]] -> [[(Int, Int)]]
+        sortFunction = sortOn (manhantanDistance labirinth . head)
+        newFrontier = (reverse . sortFunction) frontier
 ---
 
 manhantanDistance :: (Eq t) => Enviroment t -> (Int, Int) -> Int
 manhantanDistance labirinth (x,y)= abs (x-i) + abs (y - j)
     where
-        (i,j) = findCoordenateTreasure labirinth 
+        (i,j) = findCoordenateTreasure labirinth
 
 findCoordenateTreasure :: (Eq t) => Enviroment t -> (Int, Int)
-findCoordenateTreasure (Labirinth _ treasure _ _ matrix _) = 
+findCoordenateTreasure (Labirinth _ treasure _ _ matrix _) =
     findCoordenate treasure matrix "You have two Treasure Spots"
 
 findCoordenate :: (Eq t) => t -> [[t]] -> String -> (Int, Int)
-findCoordenate char matrix message 
+findCoordenate char matrix message
     | null spots || length spots > 1 = error message
     | otherwise = head spots
-    where 
-        spots =  [(x, y) | y <- [0..(pred.length) matrix], 
-                  x <- [0..(pred.length) (matrix !! y)], 
+    where
+        spots =  [(x, y) | y <- [0..(pred.length) matrix],
+                  x <- [0..(pred.length) (matrix !! y)],
                   matrix !! y !! x == char]
 
 ---
@@ -85,8 +90,8 @@ generateAllPerceptions (x, y) = [(succ x, y), (pred x, y), (x, succ y), (x, pred
 isValidPerception :: (Eq t) => Enviroment t -> (Int, Int) -> Bool
 isValidPerception _ (-1, _) = False
 isValidPerception _ (_, -1) = False
-isValidPerception (Labirinth obstacle treasure normal agent matrix _) (x, y) =
-    y < length matrix && x < length (matrix !! y) && cursor == normal
+isValidPerception (Labirinth _ treasure normal _ matrix _) (x, y) =
+    y < length matrix && x < length (matrix !! y) && cursor `elem` [treasure, normal]
     where
         cursor = matrix !! y !! x
 

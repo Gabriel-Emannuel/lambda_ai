@@ -26,7 +26,7 @@ endAlgorithm (Frontier _ _ _ end) = end
 endAlgorithm (HillClibing _ _ _ end) = end
 endAlgorithm (SimulatedAnnealing _ _ _ _ _ _ end) = end
 
-baseAlgorithm :: (Eq s) => Enviroment t -> Agent s ->
+baseAlgorithm :: Enviroment t -> Agent s ->
                  (Enviroment t -> Agent s -> Agent s) ->
                  (Agent s -> Enviroment t -> (Agent s, Enviroment t)) ->
                  Agent s

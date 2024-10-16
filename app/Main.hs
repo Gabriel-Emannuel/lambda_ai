@@ -27,7 +27,7 @@ showCommands = do
     putStrLn "problem:"
     putStrLn $ tab ++ "labirinth - Solve a Labirinth already saved in your computer and look how multiple strategies works in the process!"
     putStrLn ""
-    putStrLn $ tab ++ "polinomial - From a polinomial and a Value Interval, you can see how multiple strategies find the maximum elements."
+    putStrLn $ tab ++ "polynomial - From a polinomial and a Value Interval, you can see how multiple strategies find the maximum elements."
     putStrLn ""
     putStrLn $ tab ++ "genetic - From a series of experiments, you can look how genetic algorithms works."
     putStrLn ""
