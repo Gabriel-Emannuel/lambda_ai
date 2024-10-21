@@ -28,7 +28,7 @@ simulatedAnnealing function functionChange tempInitial tempRate tempMin possible
 hillClibingPerception :: (Ord t) => Enviroment t -> Agent t -> Agent t
 hillClibingPerception (Function  function) (HillClibing value domain functionChange _)
     | domain valueL && function valueL > function value = HillClibing valueL domain functionChange False 
-    | domain valueL && function valueR > function value = HillClibing valueR domain functionChange False
+    | domain valueR && function valueR > function value = HillClibing valueR domain functionChange False
     | otherwise = HillClibing value domain functionChange True
     where
         valueL = functionChange value False
@@ -44,7 +44,7 @@ simulatedAnnealingPerception (Function function) (SimulatedAnnealing value domai
     | temp <= tempMin = SimulatedAnnealing value domain temp tempRate tempMin functionChange True
     | domain valueL && function valueL > function value = SimulatedAnnealing valueL domain temp tempRate tempMin functionChange False
     | domain valueR && function valueR > function value = SimulatedAnnealing valueR domain temp tempRate tempMin functionChange False
-    | otherwise = SimulatedAnnealing value domain temp tempRate tempMin functionChange True 
+    | otherwise = SimulatedAnnealing value domain temp tempRate tempMin functionChange False
     where
         valueL = functionChange value temp
         valueR = functionChange value (temp * (-1))

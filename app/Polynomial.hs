@@ -9,7 +9,7 @@ polynomial :: [String] -> IO ()
 polynomial (intervalMin : intervalMax : function) = do
 
     agentHill      <- hillClibing f functionChangeHill domain possibleValues
-    agentSimulated <- simulatedAnnealing f functionChangeSimulatedAnnealing (10^^2) 0.1 10 possibleValues domain
+    agentSimulated <- simulatedAnnealing f functionChangeSimulatedAnnealing (10^6) 0.99 1 possibleValues domain
 
     printAgent agentHill
     printAgent agentSimulated
@@ -34,7 +34,7 @@ polynomial (intervalMin : intervalMax : function) = do
         functionChangeHill v False = v - varInterval
 
         functionChangeSimulatedAnnealing :: Float -> Float -> Float
-        functionChangeSimulatedAnnealing v temp = v + temp
+        functionChangeSimulatedAnnealing v temp = v + varInterval
 
 polynomial [] = do
     putStrLn "lambda-ai polynomial [minimum value] [maximum value] [function]"
